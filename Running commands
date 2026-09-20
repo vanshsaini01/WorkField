@@ -1,0 +1,9 @@
+Terminal 1 — Backend
+
+cd E:\fielwork\backend
+python -m uvicorn app.main:app --reload
+
+Terminal 2 — Frontend
+
+cd E:\fielwork\frontend
+npm run dev 

@@ -134,11 +134,6 @@ export const EmployerJobs: React.FC = () => {
                       </span>
                       <span>•</span>
                       <span>{job.job_type}</span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1 text-slate-300 font-medium">
-                        <Users className="w-3.5 h-3.5 text-indigo-400" />
-                        {job.vacancies || 1} {job.vacancies === 1 ? 'Vacancy' : 'Vacancies'}
-                      </span>
                     </div>
 
                     {job.required_skills && job.required_skills.length > 0 && (
