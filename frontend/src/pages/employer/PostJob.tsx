@@ -2,22 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '../../components/common/Navbar';
 import { jobService } from '../../services/jobService';
-import { aiService } from '../../services/aiService';
 import { profileService } from '../../services/profileService';
 import { Profession } from '../../types';
 import { 
   Briefcase, 
-  Sparkles, 
   MapPin, 
   IndianRupee, 
   Plus, 
   X, 
-  Loader2, 
   CheckCircle2, 
   Send,
+  Loader2,
   Calendar,
   Clock,
-  FileText
+  FileText,
+  Users
 } from 'lucide-react';
 
 export const PostJob: React.FC = () => {
@@ -32,6 +31,8 @@ export const PostJob: React.FC = () => {
   const [location, setLocation] = useState('Roorkee, Uttarakhand');
   const [salaryMin, setSalaryMin] = useState(22000);
   const [salaryMax, setSalaryMax] = useState(30000);
+  const [salaryRange, setSalaryRange] = useState('22000 - 30000');
+  const [vacancies, setVacancies] = useState<number>(1);
   const [experienceYears, setExperienceYears] = useState(2);
   const [jobType, setJobType] = useState('Full-time');
   const [remoteOrOnsite, setRemoteOrOnsite] = useState('On-site');
@@ -40,10 +41,6 @@ export const PostJob: React.FC = () => {
   const [isResumeRequired, setIsResumeRequired] = useState(true);
   const [skills, setSkills] = useState<string[]>(['Electrical Wiring', 'Industrial Maintenance', 'Troubleshooting']);
   const [skillInput, setSkillInput] = useState('');
-
-  // AI JD Analyzer State
-  const [rawJobText, setRawJobText] = useState('');
-  const [analyzingJD, setAnalyzingJD] = useState(false);
 
   useEffect(() => {
     profileService.getProfessions()
@@ -84,35 +81,15 @@ export const PostJob: React.FC = () => {
     setSkills(skills.filter(s => s !== skillToRemove));
   };
 
-  // AI JD Parser
-  const handleAnalyzeJD = async () => {
-    if (!rawJobText || rawJobText.length < 15) {
-      alert('Please paste at least a couple of sentences of the job description to analyze.');
-      return;
-    }
-    setAnalyzingJD(true);
-    try {
-      const parsed = await aiService.analyzeJobDescription(rawJobText);
-      if (parsed.title) setTitle(parsed.title);
-      if (parsed.profession) {
-        setProfession(parsed.profession);
-        if (parsed.profession.toLowerCase() === 'non-professional') {
-          setIsResumeRequired(false);
-        }
-      }
-      if (parsed.experience_years !== undefined) setExperienceYears(parsed.experience_years);
-      if (parsed.salary_min) setSalaryMin(parsed.salary_min);
-      if (parsed.salary_max) setSalaryMax(parsed.salary_max);
-      if (parsed.job_type) setJobType(parsed.job_type);
-      if (parsed.location) setLocation(parsed.location);
-      if (parsed.required_skills && parsed.required_skills.length > 0) {
-        setSkills(parsed.required_skills);
-      }
-      alert('AI extracted job specifications! Review the pre-filled fields below.');
-    } catch (err: any) {
-      alert(err.response?.data?.detail || 'Job analysis failed.');
-    } finally {
-      setAnalyzingJD(false);
+  const handleSalaryRangeChange = (val: string) => {
+    setSalaryRange(val);
+    const nums = val.replace(/,/g, '').match(/\d+/g);
+    if (nums && nums.length >= 2) {
+      setSalaryMin(Number(nums[0]));
+      setSalaryMax(Number(nums[1]));
+    } else if (nums && nums.length === 1) {
+      setSalaryMin(Number(nums[0]));
+      setSalaryMax(Number(nums[0]));
     }
   };
 
@@ -121,22 +98,34 @@ export const PostJob: React.FC = () => {
     setError('');
     setIsSubmitting(true);
 
+    let minSal = salaryMin;
+    let maxSal = salaryMax;
+    const nums = salaryRange.replace(/,/g, '').match(/\d+/g);
+    if (nums && nums.length >= 2) {
+      minSal = Math.min(Number(nums[0]), Number(nums[1]));
+      maxSal = Math.max(Number(nums[0]), Number(nums[1]));
+    } else if (nums && nums.length === 1) {
+      minSal = Number(nums[0]);
+      maxSal = Number(nums[0]);
+    }
+
     try {
       await jobService.createJob({
         title,
         profession,
         description: `${title} - ${profession} position in ${location}`,
         location,
-        salary_min: Number(salaryMin),
-        salary_max: Number(salaryMax),
+        salary_min: Number(minSal),
+        salary_max: Number(maxSal),
         experience_years: Number(experienceYears),
         job_type: jobType,
         remote_or_onsite: remoteOrOnsite,
         availability_shift: availabilityShift,
         deadline,
+        vacancies: Number(vacancies) || 1,
         is_resume_required: isResumeRequired,
         required_skills: skills,
-        pay_rate: Number(salaryMax)
+        pay_rate: Number(maxSal)
       });
       navigate('/employer/dashboard');
     } catch (err: any) {
@@ -170,41 +159,6 @@ export const PostJob: React.FC = () => {
           <p className="text-slate-400 text-xs mt-1">
             Specify technical trade competencies, shift hours, wage range, and resume requirements. AI will automatically match and rank qualified workers.
           </p>
-        </div>
-
-        {/* AI Job Description Analyzer Card */}
-        <div className="bg-gradient-to-r from-indigo-950/40 via-slate-900 to-slate-900 border border-indigo-500/30 p-6 rounded-3xl shadow-xl space-y-3">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="font-bold text-white text-base">AI Job Description Analyzer</h2>
-              <p className="text-xs text-slate-400">
-                Paste rough requirements or WhatsApp messages below, and let AI extract skills, experience, and salary bounds into the form.
-              </p>
-            </div>
-          </div>
-
-          <textarea
-            rows={3}
-            value={rawJobText}
-            onChange={(e) => setRawJobText(e.target.value)}
-            placeholder="Paste rough text e.g.: 'Urgent Requirement: Need 2 industrial electricians for factory in Roorkee. 2+ yrs experience in motor wiring and control panel troubleshooting. Salary Rs 25000 to 32000 per month. General day shift.'"
-            className="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
-          />
-
-          <div className="text-right">
-            <button
-              type="button"
-              disabled={analyzingJD || !rawJobText.trim()}
-              onClick={handleAnalyzeJD}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 ml-auto cursor-pointer shadow-lg shadow-indigo-600/25"
-            >
-              {analyzingJD ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              Extract & Auto-Fill Form with AI
-            </button>
-          </div>
         </div>
 
         {/* Form */}
@@ -249,29 +203,49 @@ export const PostJob: React.FC = () => {
               </select>
             </div>
 
-            {/* Salary Bounds */}
+            {/* Monthly Salary Range (Single Column) */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
                 Monthly Salary Range (₹)
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="relative">
+                <IndianRupee className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
-                  type="number"
+                  type="text"
                   required
-                  value={salaryMin}
-                  onChange={(e) => setSalaryMin(Number(e.target.value))}
-                  placeholder="Min (e.g. 22000)"
-                  className="w-full px-3 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-                <input
-                  type="number"
-                  required
-                  value={salaryMax}
-                  onChange={(e) => setSalaryMax(Number(e.target.value))}
-                  placeholder="Max (e.g. 30000)"
-                  className="w-full px-3 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  value={salaryRange}
+                  onChange={(e) => handleSalaryRangeChange(e.target.value)}
+                  placeholder="e.g. 20000 - 30000"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
+              <span className="text-[11px] text-slate-500 block mt-1">
+                {salaryMin && salaryMax 
+                  ? `Selected Range: ₹${salaryMin.toLocaleString()} - ₹${salaryMax.toLocaleString()} / mo`
+                  : 'Specify range as Min - Max (e.g. 20000 - 30000)'}
+              </span>
+            </div>
+
+            {/* Total Vacancy */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                Total Vacancy
+              </label>
+              <div className="relative">
+                <Users className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={vacancies}
+                  onChange={(e) => setVacancies(Math.max(1, parseInt(e.target.value) || 1))}
+                  placeholder="e.g. 5"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <span className="text-[11px] text-slate-500 block mt-1">
+                Number of open vacancies available for this role
+              </span>
             </div>
 
             {/* Experience Required */}

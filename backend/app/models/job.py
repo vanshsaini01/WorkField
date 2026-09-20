@@ -38,6 +38,7 @@ class Job(Base):
     deadline = Column(String(100), nullable=True)
     is_resume_required = Column(Boolean, default=True, nullable=False)
     status = Column(Enum(JobStatus), nullable=False, default=JobStatus.OPEN)
+    vacancies = Column(Integer, default=1, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

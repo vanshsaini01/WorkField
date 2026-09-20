@@ -11,6 +11,7 @@ import { profileService } from '../../services/profileService';
 import { applicationService } from '../../services/applicationService';
 import { aiService } from '../../services/aiService';
 import { WorkerProfile, Application, Job, MatchBreakdown } from '../../types';
+import { getLocalProfilePhoto } from '../../utils/storage';
 import { 
   Briefcase, 
   CheckCircle, 
@@ -27,7 +28,8 @@ import {
   Building2, 
   MessageSquare, 
   CheckCircle2, 
-  Edit3 
+  Edit3,
+  Users
 } from 'lucide-react';
 
 export const WorkerDashboard: React.FC = () => {
@@ -336,6 +338,7 @@ export const WorkerDashboard: React.FC = () => {
                   matchScore >= 90 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
                   matchScore >= 75 ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' :
                   'bg-amber-500/10 text-amber-400 border-amber-500/30';
+                const employerPhoto = job.employer_photo || getLocalProfilePhoto('emp_' + job.employer_id) || getLocalProfilePhoto(job.employer_id);
 
                 return (
                   <div
@@ -369,8 +372,8 @@ export const WorkerDashboard: React.FC = () => {
                       <div className="flex items-start gap-3.5">
                         {/* Employer Profile Photo / Company Avatar */}
                         <div className="w-10 h-10 rounded-2xl bg-indigo-600/15 border border-indigo-500/30 overflow-hidden flex items-center justify-center shrink-0 shadow-sm mt-0.5">
-                          {job.employer_photo ? (
-                            <img src={job.employer_photo} alt={job.employer_name || 'Employer'} className="w-full h-full object-cover" />
+                          {employerPhoto ? (
+                            <img src={employerPhoto} alt={job.employer_name || 'Employer'} className="w-full h-full object-cover" />
                           ) : (
                             <span className="font-extrabold text-indigo-400 text-sm">
                               {job.employer_name ? job.employer_name[0].toUpperCase() : <Building2 className="w-4 h-4" />}
@@ -405,6 +408,10 @@ export const WorkerDashboard: React.FC = () => {
                         <span className="flex items-center gap-1 bg-slate-800/80 px-2 py-0.5 rounded-md text-emerald-400 font-semibold">
                           <IndianRupee className="w-3 h-3" />
                           ₹{job.salary_min.toLocaleString()} - ₹{job.salary_max.toLocaleString()}
+                        </span>
+                        <span className="flex items-center gap-1 bg-slate-800/80 px-2 py-0.5 rounded-md text-slate-300 font-medium">
+                          <Users className="w-3 h-3 text-indigo-400" />
+                          {job.vacancies || 1} {job.vacancies === 1 ? 'Vacancy' : 'Vacancies'}
                         </span>
                       </div>
 

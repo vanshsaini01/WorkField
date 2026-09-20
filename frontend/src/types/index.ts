@@ -109,6 +109,7 @@ export interface Job {
   availability_shift: string;
   deadline?: string;
   is_resume_required?: boolean;
+  vacancies?: number;
   status: 'open' | 'closed' | 'in_progress';
   created_at?: string;
   match_score?: number;

@@ -229,6 +229,10 @@ export const EmployerDashboard: React.FC = () => {
                           </span>
                           <span>•</span>
                           <span>{job.job_type}</span>
+                          <span>•</span>
+                          <span className="text-slate-300 font-medium">
+                            {job.vacancies || 1} {job.vacancies === 1 ? 'Vacancy' : 'Vacancies'}
+                          </span>
                         </div>
                       </div>
                     </div>

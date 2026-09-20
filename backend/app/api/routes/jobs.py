@@ -31,6 +31,7 @@ def enrich_job_with_worker_data(job: Job, worker_user: Optional[User], db: Sessi
         "salary_min": job.salary_min or (job.pay_rate or 15000.0),
         "salary_max": job.salary_max or (job.pay_rate or 25000.0),
         "pay_rate": job.pay_rate,
+        "vacancies": getattr(job, "vacancies", 1) or 1,
         "job_type": job.job_type or "Full-time",
         "location": job.location,
         "latitude": job.latitude,
@@ -126,6 +127,7 @@ def create_job(
         availability_shift=job_in.availability_shift or "Day Shift",
         deadline=job_in.deadline,
         is_resume_required=is_resume_req,
+        vacancies=job_in.vacancies or 1,
         status=JobStatus.OPEN
     )
     db.add(new_job)
@@ -220,6 +222,7 @@ def get_employer_jobs(
             "created_at": job.created_at,
             "applicant_count": app_count,
             "is_resume_required": getattr(job, "is_resume_required", True),
+            "vacancies": getattr(job, "vacancies", 1) or 1,
             "required_skills": job.required_skills or [],
             "employer_id": job.employer_id,
             "employer_name": company_name,

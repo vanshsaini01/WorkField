@@ -9,6 +9,7 @@ import { JobMap } from '../../components/jobs/JobMap';
 import { jobService } from '../../services/jobService';
 import { profileService } from '../../services/profileService';
 import { Job, Profession, MatchBreakdown } from '../../types';
+import { getLocalProfilePhoto } from '../../utils/storage';
 import { 
   Search, 
   Filter, 
@@ -23,7 +24,8 @@ import {
   RotateCcw,
   Briefcase,
   Building2,
-  MessageSquare
+  MessageSquare,
+  Users
 } from 'lucide-react';
 
 export const JobSearch: React.FC = () => {
@@ -313,6 +315,7 @@ export const JobSearch: React.FC = () => {
                 matchScore >= 90 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
                 matchScore >= 75 ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' :
                 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+              const employerPhoto = job.employer_photo || getLocalProfilePhoto('emp_' + job.employer_id) || getLocalProfilePhoto(job.employer_id);
 
               return (
                 <div
@@ -361,8 +364,8 @@ export const JobSearch: React.FC = () => {
                     <div className="flex items-start gap-3.5">
                       {/* Employer Profile Photo / Company Avatar */}
                       <div className="w-11 h-11 rounded-2xl bg-indigo-600/15 border border-indigo-500/30 overflow-hidden flex items-center justify-center shrink-0 shadow-sm mt-0.5">
-                        {job.employer_photo ? (
-                          <img src={job.employer_photo} alt={job.employer_name || 'Employer'} className="w-full h-full object-cover" />
+                        {employerPhoto ? (
+                          <img src={employerPhoto} alt={job.employer_name || 'Employer'} className="w-full h-full object-cover" />
                         ) : (
                           <span className="font-extrabold text-indigo-400 text-base">
                             {job.employer_name ? job.employer_name[0].toUpperCase() : <Building2 className="w-5 h-5" />}
@@ -400,6 +403,10 @@ export const JobSearch: React.FC = () => {
                       </span>
                       <span className="bg-slate-800/80 px-2.5 py-1 rounded-lg text-slate-400">
                         {job.job_type}
+                      </span>
+                      <span className="flex items-center gap-1 bg-slate-800/80 px-2.5 py-1 rounded-lg text-slate-300 font-medium">
+                        <Users className="w-3.5 h-3.5 text-indigo-400" />
+                        {job.vacancies || 1} {job.vacancies === 1 ? 'Vacancy' : 'Vacancies'}
                       </span>
                       {job.is_resume_required === false || job.profession === 'Non-professional' ? (
                         <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg text-[11px] font-bold">

@@ -127,6 +127,7 @@ def get_recommended_jobs(
         job = item["job"]
         emp_prof = db.query(EmployerProfile).filter(EmployerProfile.user_id == job.employer_id).first()
         company_name = emp_prof.company_name if emp_prof else "Enterprise Employer"
+        employer_photo = emp_prof.profile_photo if emp_prof else None
 
         results.append({
             "id": job.id,
@@ -137,11 +138,16 @@ def get_recommended_jobs(
             "experience_years": job.experience_years or 0.0,
             "salary_min": job.salary_min,
             "salary_max": job.salary_max,
+            "vacancies": getattr(job, "vacancies", 1) or 1,
             "job_type": job.job_type,
             "location": job.location,
             "remote_or_onsite": job.remote_or_onsite,
+            "availability_shift": job.availability_shift or "Day Shift",
+            "deadline": job.deadline,
+            "is_resume_required": getattr(job, "is_resume_required", True),
             "employer_id": job.employer_id,
             "employer_name": company_name,
+            "employer_photo": employer_photo,
             "created_at": job.created_at,
             "match_score": item["match_score"],
             "match_breakdown": item["match_breakdown"],
@@ -202,6 +208,7 @@ def get_candidate_recommendations(
             "worker_id": w.id,
             "full_name": w.full_name,
             "email": w.email,
+            "profile_photo": prof.profile_photo if prof else None,
             "profession": w_prof or "General Worker",
             "experience_years": w_exp,
             "skills": w_skills,

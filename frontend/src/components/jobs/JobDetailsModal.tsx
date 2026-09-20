@@ -13,8 +13,10 @@ import {
   MessageSquare,
   Send,
   Calendar,
-  Layers
+  Layers,
+  Users
 } from 'lucide-react';
+import { getLocalProfilePhoto } from '../../utils/storage';
 
 interface JobDetailsModalProps {
   isOpen: boolean;
@@ -37,6 +39,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 
   const isResumeRequired = job.is_resume_required !== false && job.profession?.toLowerCase() !== 'non-professional';
   const companyName = job.employer_name || 'Employer Enterprise';
+  const employerPhoto = job.employer_photo || getLocalProfilePhoto('emp_' + job.employer_id) || getLocalProfilePhoto(job.employer_id);
 
   return (
     <div 
@@ -49,25 +52,23 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
       >
         
         {/* Header */}
-        <div className="p-6 border-b border-slate-800 flex items-start justify-between shrink-0 bg-slate-900/90">
-          <div className="space-y-1.5 pr-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+        <div className="p-6 border-b border-slate-800 flex items-start justify-between gap-4 shrink-0 bg-slate-900/50">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
                 {job.profession}
               </span>
-              <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-                {job.job_type}
+              <span className="text-xs text-slate-500">•</span>
+              <span className="text-xs text-slate-400">{job.job_type}</span>
+              <span className="text-xs text-slate-500">•</span>
+              <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${
+                job.status === 'open' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-500'
+              }`}>
+                {job.status}
               </span>
-              {job.is_resume_required === false && (
-                <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                  No Resume Required
-                </span>
-              )}
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-              {job.title}
-            </h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">{job.title}</h2>
 
             {/* Clickable Company Link */}
             <div className="flex items-center gap-2.5 text-sm text-slate-400">
@@ -80,8 +81,8 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                 className="font-semibold text-indigo-400 hover:text-indigo-300 hover:underline flex items-center gap-2 transition cursor-pointer"
               >
                 <div className="w-5 h-5 rounded-full bg-indigo-600/20 border border-indigo-500/30 overflow-hidden flex items-center justify-center shrink-0">
-                  {job.employer_photo ? (
-                    <img src={job.employer_photo} alt={companyName} className="w-full h-full object-cover" />
+                  {employerPhoto ? (
+                    <img src={employerPhoto} alt={companyName} className="w-full h-full object-cover" />
                   ) : (
                     <Building2 className="w-3 h-3 text-indigo-400" />
                   )}
@@ -103,7 +104,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
         <div className="p-6 space-y-6 overflow-y-auto flex-1">
           
           {/* Key Job Specifications */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             <div className="p-3.5 rounded-2xl bg-slate-800/50 border border-slate-700/60">
               <p className="text-[11px] text-slate-400 font-medium">Estimated Salary</p>
               <p className="text-sm font-bold text-emerald-400 mt-1">
@@ -134,6 +135,14 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                 {job.availability_shift || 'Day Shift'}
               </p>
               <p className="text-[10px] text-slate-500">Shift Schedule</p>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-slate-800/50 border border-slate-700/60 col-span-2 sm:col-span-1">
+              <p className="text-[11px] text-slate-400 font-medium">Total Vacancy</p>
+              <p className="text-sm font-bold text-white mt-1">
+                {job.vacancies || 1} {job.vacancies === 1 ? 'Opening' : 'Openings'}
+              </p>
+              <p className="text-[10px] text-slate-500">Available Roles</p>
             </div>
           </div>
 

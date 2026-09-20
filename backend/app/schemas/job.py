@@ -25,6 +25,7 @@ class JobCreate(BaseModel):
     availability_shift: Optional[str] = "Day Shift"
     deadline: Optional[str] = None
     is_resume_required: Optional[bool] = True
+    vacancies: Optional[int] = Field(1, ge=1)
 
 class JobUpdate(BaseModel):
     title: Optional[str] = None
@@ -35,6 +36,7 @@ class JobUpdate(BaseModel):
     salary_min: Optional[float] = None
     salary_max: Optional[float] = None
     pay_rate: Optional[float] = None
+    vacancies: Optional[int] = None
     job_type: Optional[str] = None
     location: Optional[str] = None
     latitude: Optional[float] = None
@@ -55,6 +57,7 @@ class JobResponse(BaseModel):
     salary_min: float
     salary_max: float
     pay_rate: Optional[float] = None
+    vacancies: Optional[int] = 1
     job_type: str
     location: str
     latitude: Optional[float] = None
